@@ -1,0 +1,16 @@
+{
+	"name": "@hallucinate/playground",
+	"type": "module",
+	"main": "index.js",
+	"peerDependencies": {
+		"@architekt/forms": "../../architekt/forms",
+		"@architekt/router": "../../architekt/router",
+		"@architekt/ui": "file:../../architekt/ui"
+	},
+	"dependencies": {
+		"@mwni/events": "^3.0.0"
+	},
+	"architekt": {
+		"bundle": true
+	}
+}
