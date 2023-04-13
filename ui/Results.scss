@@ -1,0 +1,42 @@
+.tile{
+	@apply rounded-2xl;
+
+	width: 250px;
+	height: 200px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	background-color: rgb(var(--backgroundSecondary));
+	border: solid 2px transparent;
+
+	&.trigger{
+		cursor: pointer;
+	
+		&:active{
+			background-color: var(--color-shade-100);
+		}
+	
+		&::after{
+			@apply rounded-2xl;
+
+			content: '';
+			position: absolute;
+			top: 4px;
+			left: 4px;
+			right: 4px;
+			bottom: 4px;
+			border: dashed 3px rgb(var(--border));
+			pointer-events: none;
+		}
+	
+		&:hover::after{
+			border-color: rgb(var(--primary));
+		}
+	
+		&:active::after{
+			border: solid 3px rgb(var(--primary));
+		}
+	}
+}
