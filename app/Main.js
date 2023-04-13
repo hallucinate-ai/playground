@@ -108,6 +108,16 @@ export default ({ apiUrl }) => {
 		}
 	}
 
+	app.params.on('update', () => {
+		if(app.epochs.length === 0)
+			return
+
+		let last = app.epochs[app.epochs.length - 1]
+		
+		last.sealed = app.willCreateNewEpoch()
+		last.emit('update')
+	})
+
 	return app
 }
 

@@ -26,14 +26,10 @@ export default Component(({ ctx }) => {
 
 	Stylesheet()
 	VStack(() => {
-		if(app.willCreateNewEpoch())
-			EpochPlaceholder()
+		EpochPlaceholder()
 
-		for(let epoch of app.epochs){
-			Epoch({ 
-				epoch,
-				sealed: app.epochs.indexOf(epoch) > 0
-			})
+		for(let epoch of app.epochs.slice().reverse()){
+			Epoch({ epoch })
 		}
 	})
 })
@@ -47,24 +43,28 @@ const EpochPlaceholder = Component(({ ctx }) => {
 	ctx.afterDelete(() => playground.params.off('update', redraw))
 
 	return () => {
-		VStack({ class: '' }, () => {
-			if(playground.currentPrompt.length > 0)
-				EpochHeader({
-					prompt: playground.currentPrompt,
-					open: true
-				})
+		if(playground.willCreateNewEpoch()){
+			VStack({ class: 'mb-10' }, () => {
+				if(playground.currentPrompt.length > 0)
+					EpochHeader({
+						prompt: playground.currentPrompt,
+						open: true
+					})
 
-			GenerateTrigger()
-		})
+				GenerateTrigger()
+			})
+		}
 	}
 })
 
-const EpochHeader = ({ prompt, open }) => {
+const EpochHeader = ({ prompt, open, onToggle }) => {
 	HStack({ class: 'items-center gap-x-2 mb-4' }, () => {
-		Icon({
-			asset: open
-				? iconFolderOpen
-				: iconFolderClosed
+		Interactive({ onTap: onToggle }, () => {
+			Icon({
+				asset: open
+					? iconFolderOpen
+					: iconFolderClosed
+			})
 		})
 		Text({
 			class: 'text-xs',
@@ -73,17 +73,24 @@ const EpochHeader = ({ prompt, open }) => {
 	})
 }
 
-const Epoch = Component(({ ctx, epoch, sealed }) => {
+const Epoch = Component(({ ctx, epoch }) => {
 	let redraw = ctx.redraw.bind(ctx)
 
 	epoch.on('update', redraw)
 	ctx.afterDelete(() => epoch.off('update', redraw))
 
-	return () => {
-		VStack({ class: '' }, () => {
+	return ({ epoch: newEpoch }) => {
+		if(epoch !== newEpoch)
+			return ctx.teardown()
+
+		VStack({ class: 'mb-10' }, () => {
 			EpochHeader({
 				prompt: epoch.prompt,
-				open: !epoch.minimized
+				open: !epoch.minimized,
+				onToggle: () => {
+					epoch.minimized = !epoch.minimized
+					epoch.emit('update')
+				}
 			})
 	
 			if(!epoch.minimized){
