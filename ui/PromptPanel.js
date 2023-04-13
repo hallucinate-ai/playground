@@ -1,5 +1,5 @@
 import { Component, HStack, Icon, Text, VStack } from '@architekt/ui'
-import { createModel, Dropdown, Select, Slider, TextInput } from '@architekt/forms'
+import { Dropdown, Select, Slider, TextInput } from '@architekt/forms'
 import iconAspectSquare from 'asset:../assets/aspect-square.json'
 import iconAspectLandscape from 'asset:../assets/aspect-landscape.json'
 import iconAspectPortrait from 'asset:../assets/aspect-portrait.json'

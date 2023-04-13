@@ -1,12 +1,28 @@
-import { Component, Fragment, HStack, Icon, Text, VStack } from '@architekt/ui'
+import { Component, Fragment, HStack, Icon, Image, Interactive, Progress, Text, VStack } from '@architekt/ui'
 import iconFolderOpen from '../assets/folder-open.json'
 import iconFolderClosed from '../assets/folder-closed.json'
 import Stylesheet from './Results.scss'
+import { toRankNumber } from '../lib/formatting.js'
+
+
+const progressStageLabels = {
+	upload: 'Uploading',
+	wait: 'Waiting',
+	init: 'Warming up',
+	encode: 'Encoding',
+	sample: 'Sampling',
+	decode: 'Decoding',
+	receive: 'Receiving',
+}
 
 
 
 export default Component(({ ctx }) => {
+	let redraw = ctx.redraw.bind(ctx)
 	let app = ctx.upstream.playground
+
+	ctx.upstream.playground.on('update', redraw)
+	ctx.afterDelete(() => ctx.upstream.playground.off('update', redraw))
 
 	Stylesheet()
 	VStack(() => {
@@ -24,71 +40,118 @@ export default Component(({ ctx }) => {
 
 
 const EpochPlaceholder = Component(({ ctx }) => {
+	let playground = ctx.upstream.playground
 	let redraw = ctx.redraw.bind(ctx)
 
-	ctx.upstream.playground.params.on('update', redraw)
-	ctx.afterDelete(() => ctx.upstream.playground.params.off('update', redraw))
+	playground.params.on('update', redraw)
+	ctx.afterDelete(() => playground.params.off('update', redraw))
 
 	return () => {
 		VStack({ class: '' }, () => {
-			HStack({ class: 'items-center gap-x-2 mb-4' }, () => {
-				Icon({
-					asset: iconFolderOpen
+			if(playground.currentPrompt.length > 0)
+				EpochHeader({
+					prompt: playground.currentPrompt,
+					open: true
 				})
-				Text({
-					class: 'text-xs',
-					text: ctx.upstream.playground.currentPrompt
-				})
-			})
+
 			GenerateTrigger()
 		})
 	}
 })
 
-const Epoch = Fragment(({ epoch, sealed }) => {
-	let numItems = epoch.results.length
-	let numItemsPadded = Math.max(2, Math.ceil((numItems + 1) / 2) * 2)
-	let placedGenerateTrigger = false
-
-	VStack({ class: '' }, () => {
-		HStack({ class: '' }, () => {
-
+const EpochHeader = ({ prompt, open }) => {
+	HStack({ class: 'items-center gap-x-2 mb-4' }, () => {
+		Icon({
+			asset: open
+				? iconFolderOpen
+				: iconFolderClosed
 		})
+		Text({
+			class: 'text-xs',
+			text: prompt
+		})
+	})
+}
 
-		if(!epoch.minimized){
-			HStack({ class: '' }, () => {
-				for(let i=0; i<numItemsPadded; i++){
-					let result = epoch.results[i]
-			
-					if(result){
+const Epoch = Component(({ ctx, epoch, sealed }) => {
+	let redraw = ctx.redraw.bind(ctx)
+
+	epoch.on('update', redraw)
+	ctx.afterDelete(() => epoch.off('update', redraw))
+
+	return () => {
+		VStack({ class: '' }, () => {
+			EpochHeader({
+				prompt: epoch.prompt,
+				open: !epoch.minimized
+			})
+	
+			if(!epoch.minimized){
+				HStack({ class: 'gap-4 flex-wrap' }, () => {
+					for(let result of epoch.results){
 						if(result.computeHandle){
 							Status({ computeHandle: result.computeHandle })
 						}else{
 							Result({ result })
 						}
-					}else if(!sealed){
-						if(!placedGenerateTrigger){
-							GenerateTrigger()
-							placedGenerateTrigger = true
-						}else{
-							Stub()
-						}
 					}
-				}
-			})
-		}
-	})
+	
+					if(!epoch.sealed)
+						GenerateTrigger()
+				})
+			}
+		})
+	}
 })
 
+const Status = Component(({ ctx, computeHandle }) => {
+	let redraw = ctx.redraw.bind(ctx)
+
+	computeHandle.on('status', redraw)
+	ctx.afterDelete(() => computeHandle.off('status', redraw))
+
+	return () => {
+		let text
+
+		if(computeHandle.stage === 'queue'){
+			text = `${computeHandle.position}${toRankNumber(computeHandle.position)} in queue`
+		}else{
+			text = progressStageLabels[computeHandle.stage]
+		}
+
+		VStack({ class: 'tile status' }, () => {
+			VStack({ class: 'h-12 justify-center' }, () => {
+				if(computeHandle.progress)
+					Progress({
+						class: 'progress h-2 w-24',
+						value: computeHandle.progress
+					}, () => {})
+				else
+					VStack({ class: 'spinner-dot-intermittent' }, () => {})
+			})
+			Text({ text })
+		})
+	}
+})
+
+const Result = ({ result }) => {
+	VStack({ class: 'tile result' }, () => {
+		Image({
+			class: '',
+			blob: result.image
+		})
+	})
+}
+
 const GenerateTrigger = Fragment(({ ctx }) => {
-	VStack({ class: 'tile trigger' }, () => {
-		Text({
-			text: 'Click to generate'
+	Interactive({ onTap: ctx.upstream.playground.generate }, () => {
+		VStack({ class: 'tile trigger' }, () => {
+			Text({
+				text: 'Click to generate'
+			})
 		})
 	})
 })
-
-
 
 /*
 const Epoch = {

@@ -1,5 +1,6 @@
 import { createEmitter } from '@mwni/events'
 import createParams from './Params.js'
+import createApi from './Api.js'
 
 
 export default ({ apiUrl }) => {
@@ -8,6 +9,7 @@ export default ({ apiUrl }) => {
 		...events,
 		epochs: [],
 		params: createParams(),
+		api: createApi({ endpoint: apiUrl }),
 
 		get currentPrompt(){
 			return app.params.get('prompt')
@@ -15,12 +17,101 @@ export default ({ apiUrl }) => {
 
 		willCreateNewEpoch(){
 			let epoch = app.epochs[app.epochs.length - 1]
-			return !epoch || !isSamePrompt(epoch.prompt, params.prompt)
+			return !epoch || !isSamePrompt(epoch.prompt, app.currentPrompt)
+		},
+
+		createEpoch(){
+			let epoch = {
+				...createEmitter(),
+				prompt: app.currentPrompt,
+				seed: 1 + Math.floor(1000000 * Math.random()),
+				date: Math.floor(Date.now() / 1000),
+				results: []
+			}
+
+			app.epochs.push(epoch)
+			app.emit('update')
+
+			return epoch
+		},
+
+		async getParams(){
+			await app.params.validate()
+
+			let { aspect, ...params } = app.params.data
+			let width = 512
+			let height = 512
+
+			return {
+				...params,
+				width,
+				height
+			}
+		},
+
+		removeResult({ epoch, result }){
+			epoch.results.splice(epoch.results.indexOf(result), 1)
+			epoch.emit('update')
+
+			if(epoch.results.length === 0){
+				app.epochs.splice(app.epochs.indexOf(epoch), 1)
+				app.emit('update')
+			}
+		},
+		
+		async generate(){
+			try{
+				let params = await app.getParams()
+
+				let epoch = app.willCreateNewEpoch()
+					? app.createEpoch()
+					: app.epochs[app.epochs.length - 1]
+			
+				
+				let seed = epoch.seed++
+				let computeHandle = app.api.generate({
+					...params,
+					seed
+				})
+
+				let result = {
+					params,
+					seed,
+					computeHandle
+				}
+			
+				computeHandle.on('cancel', ({ message }) => {
+					app.removeResult({ epoch, result })
+					
+					if(message){
+						app.emit('error', {
+							title: `Generate failed`,
+							message
+						})
+					}
+				})
+			
+				computeHandle.on('result', ({ image }) => {
+					result.image = image
+					result.computeHandle = undefined
+					epoch.emit('update')
+				})
+
+				epoch.results.push(result)
+				epoch.emit('update')
+			}catch(e){
+				app.emit('error', {
+					title: `Can not generate`,
+					message
+				})
+			}
 		}
 	}
 
 	return app
 }
+
+
 
 function isSamePrompt(a, b){
 	return a.trim() === b.trim()

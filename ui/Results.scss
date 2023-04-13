@@ -39,4 +39,28 @@
 			border: solid 3px rgb(var(--primary));
 		}
 	}
+
+	&.status{
+		background-color: var(--color-shade-100);
+		border-color: rgb(var(--primary));
+	}
+
+	&.result{
+		@apply p-2 cursor-pointer;
+
+		&:hover{
+			border-color: rgb(var(--primary));
+		}
+
+		&:active{
+			background-color: var(--color-shade-100);
+		}
+
+		Image{
+			@apply rounded-lg;
+
+			max-width: 100%;
+			max-height: 100%;
+		}
+	}
 }

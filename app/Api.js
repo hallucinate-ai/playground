@@ -27,8 +27,8 @@ export default ({ endpoint }) => {
 			}`
 		}else{
 			message = event.code === 4001
-				? `Your version of the plugin is no longer compatible with hallucinate cloud. Please update the plugin.`
-				: `Unexpectedly lost connection to the hallucinate cloud.`
+				? `Your version of the playground is no longer compatible with Hallucinate Cloud. Please refresh the page.`
+				: `Unexpectedly lost connection to the Hallucinate Cloud.`
 		}
 
 		for(let { reject } of Object.values(callbacks)){
@@ -51,7 +51,6 @@ export default ({ endpoint }) => {
 		console.log(`task(${id}) progress: ${stage} ${value}`)
 
 		Object.assign(handles[id], {
-			stage: 'progress',
 			stage,
 			progress: value
 		})
@@ -64,7 +63,8 @@ export default ({ endpoint }) => {
 
 		Object.assign(handles[id], {
 			stage: 'queue',
-			position
+			position,
+			progress: undefined
 		})
 
 		handles[id].emit('status')
@@ -104,7 +104,10 @@ export default ({ endpoint }) => {
 			console.log('received full image')
 
 			handles[id].emit('result', {
-				image: receiveBuffer.slice()
+				image: new Blob(
+					[receiveBuffer],
+					{ type: 'image/jpeg' }
+				)
 			})
 		}
 	})
@@ -155,7 +158,7 @@ export default ({ endpoint }) => {
 			}
 
 			socket.send({
-				command: 'diffuse',
+				command: 'txt2img',
 				id,
 				...files,
 				...args
