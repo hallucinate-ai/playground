@@ -1,4 +1,16 @@
 .aspect{
+	@apply w-full max-w-full flex-nowrap;
+
+	.btn{
+		width: 100%;
+		flex-shrink: 1;
+		
+		&:last-child{
+			position: relative;
+			left: -1px;
+		}
+	}
+
 	[selected]{
 		@apply btn-active text-primary;
 	}
