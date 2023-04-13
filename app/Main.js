@@ -102,7 +102,7 @@ export default ({ apiUrl }) => {
 			}catch(e){
 				app.emit('error', {
 					title: `Can not generate`,
-					message
+					message: e.message || 'Some parameters were invalid. Check the inputs that were marked red.'
 				})
 			}
 		}
