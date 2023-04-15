@@ -1,8 +1,8 @@
 import { Component, HStack, Icon, Text, VStack } from '@architekt/ui'
 import { Dropdown, Select, Slider, TextInput } from '@architekt/forms'
-import iconAspectSquare from 'asset:../assets/aspect-square.json'
-import iconAspectLandscape from 'asset:../assets/aspect-landscape.json'
-import iconAspectPortrait from 'asset:../assets/aspect-portrait.json'
+import iconAspectSquare from '../assets/aspect-square.svg'
+import iconAspectLandscape from '../assets/aspect-landscape.svg'
+import iconAspectPortrait from '../assets/aspect-portrait.svg'
 import Stylesheet from './PromptPanel.scss'
 
 

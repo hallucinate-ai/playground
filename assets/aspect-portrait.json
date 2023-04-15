@@ -1,7 +1,0 @@
-{
-	"type": "image",
-	"file": "./aspect-portrait.svg",
-	"replace": {
-		"black": "color"
-	}
-}

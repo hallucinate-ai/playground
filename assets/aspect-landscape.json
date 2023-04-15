@@ -1,7 +1,0 @@
-{
-	"type": "image",
-	"file": "./aspect-landscape.svg",
-	"replace": {
-		"black": "color"
-	}
-}
