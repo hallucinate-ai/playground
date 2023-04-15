@@ -4,7 +4,7 @@ export default data => createModel({
 	data: {
 		model: 'stable-diffusion-v1-5',
 		prompt: '',
-		promptNegative: '',
+		prompt_negative: '',
 		aspect: 'square',
 		sampler: 'k_lms',
 		steps: 42,

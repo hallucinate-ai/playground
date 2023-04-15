@@ -38,7 +38,7 @@ export default Component(({ ctx }) => {
 					})
 					TextInput({
 						model,
-						key: 'promptNegative',
+						key: 'prompt_negative',
 						multiline: true,
 						class: 'textarea h-16'
 					})
