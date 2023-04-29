@@ -1,6 +1,6 @@
 import { Component, Fragment, HStack, Icon, Image, Interactive, Progress, Text, VStack } from '@architekt/ui'
-import iconFolderOpen from '../assets/folder-open.json'
-import iconFolderClosed from '../assets/folder-closed.json'
+import iconFolderOpen from '../assets/folder-open.svg'
+import iconFolderClosed from '../assets/folder-closed.svg'
 import Stylesheet from './Results.scss'
 import { toRankNumber } from '../lib/formatting.js'
 

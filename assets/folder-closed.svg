@@ -1,6 +1,6 @@
 <svg width="26px" height="11px" viewBox="0 0 26 11" xmlns="http://www.w3.org/2000/svg">
 	<g transform="matrix( 1, 0, 0, 1, 0,0) ">
-		<path fill="#FFFFFF" stroke="none" d="
+		<path fill="{{color}}" stroke="none" d="
 			M 2.7 10.2
 			L 6.25 5.5 2.7 0.8 1.85 1.4 4.95 5.5 1.85 9.6 2.7 10.2
 			M 19.75 1

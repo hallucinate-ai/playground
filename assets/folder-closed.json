@@ -1,7 +1,0 @@
-{
-	"type": "image",
-	"file": "./folder-closed.svg",
-	"replace": {
-		"#FFFFFF": "color"
-	}
-}
