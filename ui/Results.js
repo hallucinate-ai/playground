@@ -1,4 +1,4 @@
-import { Component, Fragment, HStack, Icon, Image, Interactive, Progress, Text, VStack } from '@architekt/ui'
+import { Button, Component, Fragment, HStack, Icon, Image, Interactive, Progress, Text, VStack } from '@architekt/ui'
 import iconFolderOpen from '../assets/folder-open.svg'
 import iconFolderClosed from '../assets/folder-closed.svg'
 import Stylesheet from './Results.scss'
@@ -127,6 +127,11 @@ const Status = Component(({ ctx, computeHandle }) => {
 		}
 
 		VStack({ class: 'tile status' }, () => {
+			Button({
+				class: 'cancel btn btn-xs btn-rounded absolute top-3 right-3',
+				text: '✕',
+				onTap: computeHandle.cancel
+			})
 			VStack({ class: 'h-12 justify-center' }, () => {
 				if(computeHandle.progress)
 					Progress({

@@ -43,6 +43,16 @@
 	&.status{
 		background-color: var(--color-shade-100);
 		border-color: rgb(var(--primary));
+
+		.btn.cancel{
+			display: none;
+		}
+
+		&:hover{
+			.btn.cancel{
+				display: block;
+			}
+		}
 	}
 
 	&.result{
