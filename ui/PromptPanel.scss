@@ -15,3 +15,11 @@
 		@apply btn-active text-primary;
 	}
 }
+
+.model-card{
+	@apply w-full p-3 rounded-xl bg-gray-3 gap-x-3 items-center cursor-pointer border-2 border-transparent;
+
+	&:active{
+		@apply border-primary;
+	}
+}

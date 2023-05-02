@@ -7,9 +7,16 @@ export default ({ apiUrl }) => {
 	let events = createEmitter()
 	let app = {
 		...events,
+		model: undefined,
+		models: [],
 		epochs: [],
 		params: createParams(),
 		api: createApi({ endpoint: apiUrl }),
+
+		setModel(model){
+			app.model = model
+			app.emit('update')
+		},
 
 		get currentPrompt(){
 			return app.params.get('prompt')
@@ -36,6 +43,9 @@ export default ({ apiUrl }) => {
 		},
 
 		async getParams(){
+			if(!app.model)
+				throw { message: 'Model list has not been loaded, yet.' }
+
 			await app.params.validate()
 
 			let { aspect, ...params } = app.params.data
@@ -44,6 +54,7 @@ export default ({ apiUrl }) => {
 
 			return {
 				...params,
+				model: app.model.id,
 				width,
 				height
 			}
@@ -57,6 +68,18 @@ export default ({ apiUrl }) => {
 				app.epochs.splice(app.epochs.indexOf(epoch), 1)
 				app.emit('update')
 			}
+		},
+
+		async refreshModelsList(){
+			app.models = await this.api.getModels()
+
+			if(!app.model){
+				app.model = app.models.find(
+					model => model.id === 'stable-diffusion-v1-5'
+				)
+			}
+
+			app.emit('update')
 		},
 		
 		async generate(){
@@ -117,6 +140,8 @@ export default ({ apiUrl }) => {
 		last.sealed = app.willCreateNewEpoch()
 		last.emit('update')
 	})
+
+	app.refreshModelsList()
 
 	return app
 }

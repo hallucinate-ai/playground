@@ -2,7 +2,6 @@ import { createModel } from '@architekt/forms'
 
 export default data => createModel({
 	data: {
-		model: 'stable-diffusion-v1-5',
 		prompt: '',
 		prompt_negative: '',
 		aspect: 'square',
