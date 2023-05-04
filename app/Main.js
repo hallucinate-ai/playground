@@ -71,7 +71,13 @@ export default ({ apiUrl }) => {
 		},
 
 		async refreshModelsList(){
-			app.models = await this.api.getModels()
+			try{
+				app.models = await this.api.getModels()
+			}catch{
+				await new Promise(resolve => setTimeout(resolve, 1000))
+				return await app.refreshModelsList()
+			}
+			
 
 			if(!app.model){
 				app.model = app.models.find(
