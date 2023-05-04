@@ -7,7 +7,8 @@ import { toRankNumber } from '../lib/formatting.js'
 
 const progressStageLabels = {
 	upload: 'Uploading',
-	wait: 'Waiting',
+	download_model: 'Downloading model',
+	wait: 'Waiting for worker',
 	init: 'Warming up',
 	encode: 'Encoding',
 	sample: 'Sampling',
