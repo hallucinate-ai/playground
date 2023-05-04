@@ -114,7 +114,7 @@ export default ({ endpoint }) => {
 
 	return {
 		async getModels(){
-			socket.send({ command: 'list_models' })
+			socket.send({ command: 'models' })
 		
 			return new Promise((resolve, reject) => {
 				callbacks.models = { resolve, reject }
@@ -127,7 +127,7 @@ export default ({ endpoint }) => {
 			let handle = handles[id] = {
 				...createEmitter(),
 				id,
-				stage: 'upload',
+				stage: 'wait',
 				progress: 0,
 				cancel(){
 					handle.emit('cancel', { userCancel: true })
