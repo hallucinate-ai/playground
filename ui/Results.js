@@ -25,14 +25,16 @@ export default Component(({ ctx }) => {
 	ctx.upstream.playground.on('update', redraw)
 	ctx.afterDelete(() => ctx.upstream.playground.off('update', redraw))
 
-	Stylesheet()
-	VStack(() => {
-		EpochPlaceholder()
+	return () => {
+		Stylesheet()
+		VStack(() => {
+			EpochPlaceholder()
 
-		for(let epoch of app.epochs.slice().reverse()){
-			Epoch({ epoch })
-		}
-	})
+			for(let epoch of app.epochs.slice().reverse()){
+				Epoch({ epoch })
+			}
+		})
+	}
 })
 
 
