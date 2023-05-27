@@ -182,7 +182,7 @@ export default Component(({ ctx }) => {
 const ModelCard = Fragment(({ model }) => {
 	HStack({ class: 'model-card' }, () => {
 		Image({
-			class: 'w-12 h-12 rounded-md object-cover',
+			class: 'w-12 h-12 rounded-md shrink-0 object-cover',
 			url: model.thumbnails[0]
 		})
 

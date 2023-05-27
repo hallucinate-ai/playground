@@ -24,7 +24,7 @@ export default ({ apiUrl }) => {
 
 		willCreateNewEpoch(){
 			let epoch = app.epochs[app.epochs.length - 1]
-			return !epoch || !isSamePrompt(epoch.prompt, app.currentPrompt)
+			return !epoch || !isSamePrompt(epoch.prompt, app.currentPrompt) || epoch.model.id !== app.model.id
 		},
 
 		createEpoch(){
@@ -33,7 +33,8 @@ export default ({ apiUrl }) => {
 				prompt: app.currentPrompt,
 				seed: 1 + Math.floor(1000000 * Math.random()),
 				date: Math.floor(Date.now() / 1000),
-				results: []
+				results: [],
+				model: app.model
 			}
 
 			app.epochs.push(epoch)

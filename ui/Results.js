@@ -27,7 +27,7 @@ export default Component(({ ctx }) => {
 
 	return () => {
 		Stylesheet()
-		VStack(() => {
+		VStack({ class: 'w-full' }, () => {
 			EpochPlaceholder()
 
 			for(let epoch of app.epochs.slice().reverse()){
@@ -47,11 +47,13 @@ const EpochPlaceholder = Component(({ ctx }) => {
 
 	return () => {
 		if(playground.willCreateNewEpoch()){
-			VStack({ class: 'mb-10' }, () => {
+			VStack({ class: 'w-full mb-10' }, () => {
 				if(playground.currentPrompt.length > 0)
 					EpochHeader({
 						prompt: playground.currentPrompt,
-						open: true
+						model: playground.model,
+						open: true,
+						onToggle: () => null
 					})
 
 				GenerateTrigger()
@@ -60,18 +62,30 @@ const EpochPlaceholder = Component(({ ctx }) => {
 	}
 })
 
-const EpochHeader = ({ prompt, open, onToggle }) => {
-	HStack({ class: 'items-center gap-x-2 mb-4' }, () => {
-		Interactive({ onTap: onToggle }, () => {
-			Icon({
-				asset: open
-					? iconFolderOpen
-					: iconFolderClosed
+const EpochHeader = ({ prompt, model, open, onToggle }) => {
+	HStack({ class: 'w-full items-center justify-between mb-4' }, () => {
+		HStack({ class: 'items-center gap-x-2' }, () => {
+			Interactive({ onTap: onToggle }, () => {
+				Icon({
+					asset: open
+						? iconFolderOpen
+						: iconFolderClosed
+				})
+			})
+			Text({
+				class: 'text-xs',
+				text: prompt
 			})
 		})
-		Text({
-			class: 'text-xs',
-			text: prompt
+		HStack({ class: 'items-center gap-x-2' }, () => {
+			Image({
+				class: 'w-4 h-4 rounded-full shrink-0 object-cover',
+				url: model.thumbnails[0]
+			})
+			Text({
+				class: 'text-xs text-content2',
+				text: model.name
+			})
 		})
 	})
 }
@@ -86,9 +100,10 @@ const Epoch = Component(({ ctx, epoch }) => {
 		if(epoch !== newEpoch)
 			return ctx.teardown()
 
-		VStack({ class: 'mb-10' }, () => {
+		VStack({ class: 'w-full mb-10' }, () => {
 			EpochHeader({
 				prompt: epoch.prompt,
+				model: epoch.model,
 				open: !epoch.minimized,
 				onToggle: () => {
 					epoch.minimized = !epoch.minimized
