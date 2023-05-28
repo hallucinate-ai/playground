@@ -135,6 +135,23 @@ export default ({ apiUrl }) => {
 					message: e.message || 'Some parameters were invalid. Check the inputs that were marked red.'
 				})
 			}
+		},
+
+		get busy(){
+			return app.epochs.some(
+				epoch => epoch.results.some(
+					result => result.computeHandle
+				)
+			)
+		},
+
+		get unseenCount(){
+			return app.epochs.reduce(
+				(count, epoch) => count + epoch.results.filter(
+					result => !result.computeHandle && !result.seen
+				).length,
+				0
+			)
 		}
 	}
 

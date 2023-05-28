@@ -165,6 +165,8 @@ const Status = Component(({ ctx, computeHandle }) => {
 })
 
 const Result = ({ result }) => {
+	result.seen = true
+
 	VStack({ class: 'tile result' }, () => {
 		Image({
 			class: '',
