@@ -101,7 +101,8 @@ export default ({ apiUrl }) => {
 				let seed = epoch.seed++
 				let computeHandle = app.api.generate({
 					...params,
-					seed
+					seed,
+					apiToken: app.apiToken
 				})
 
 				let result = {

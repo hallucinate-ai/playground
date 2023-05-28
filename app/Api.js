@@ -121,7 +121,7 @@ export default ({ endpoint }) => {
 			})
 		},
 
-		generate({ image, mask, ...args }){
+		generate({ image, mask, apiToken, ...args }){
 			let id = `D${idStamp++}`
 			let files = {}
 			let handle = handles[id] = {
@@ -161,7 +161,8 @@ export default ({ endpoint }) => {
 				command: 'txt2img',
 				id,
 				...files,
-				...args
+				...args,
+				api_token: apiToken
 			})
 
 			console.log(`submitted task (${id}):`, { ...files, ...args })
