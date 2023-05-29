@@ -162,7 +162,8 @@ export default ({ endpoint }) => {
 				id,
 				...files,
 				...args,
-				api_token: apiToken
+				api_token: apiToken,
+				save_history: !!apiToken
 			})
 
 			console.log(`submitted task (${id}):`, { ...files, ...args })
