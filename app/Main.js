@@ -113,6 +113,7 @@ export default ({ apiUrl }) => {
 			
 				computeHandle.on('cancel', ({ message }) => {
 					app.removeResult({ epoch, result })
+					app.emit('compute-update')
 					
 					if(message){
 						app.emit('error', {
@@ -126,6 +127,7 @@ export default ({ apiUrl }) => {
 					result.image = image
 					result.computeHandle = undefined
 					epoch.emit('update')
+					app.emit('compute-update')
 				})
 
 				epoch.results.push(result)
