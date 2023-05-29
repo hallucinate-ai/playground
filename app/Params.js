@@ -16,6 +16,9 @@ export default data => createModel({
 			check: ({ prompt }) => {
 				if(prompt.length === 0)
 					throw 'required'
+
+				if(prompt.length > 1024)
+					throw 'too long'
 			}
 		},
 		{
