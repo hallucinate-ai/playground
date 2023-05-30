@@ -14,7 +14,11 @@ export default ({ apiUrl }) => {
 		api: createApi({ endpoint: apiUrl }),
 
 		setApiToken(token){
+			if(app.apiToken === token)
+				return
+
 			app.apiToken = token
+			app.epochs = []
 			app.loadHistory()
 		},
 
