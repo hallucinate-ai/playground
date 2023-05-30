@@ -20,18 +20,33 @@ const progressStageLabels = {
 
 export default Component(({ ctx }) => {
 	let redraw = ctx.redraw.bind(ctx)
-	let app = ctx.upstream.playground
+	let playground = ctx.upstream.playground
+	let openEpoch = playground.getMatchingEpoch()
+	let updateOpenEpoch = () => {
+		let e = playground.getMatchingEpoch()
 
-	ctx.upstream.playground.on('update', redraw)
-	ctx.afterDelete(() => ctx.upstream.playground.off('update', redraw))
+		if(e !== openEpoch){
+			openEpoch = e
+			redraw()
+		}
+	}
+
+	playground.on('update', redraw)
+	playground.params.on('update', updateOpenEpoch)
+	ctx.afterDelete(() => playground.off('update', redraw))
+	ctx.afterDelete(() => playground.params.off('update', updateOpenEpoch))
 
 	return () => {
 		Stylesheet()
 		VStack({ class: 'w-full' }, () => {
 			EpochPlaceholder()
 
-			for(let epoch of app.epochs.slice().reverse()){
-				Epoch({ epoch })
+			if(openEpoch)
+				Epoch({ epoch: openEpoch, open: true })
+
+			for(let epoch of playground.epochs.slice().reverse()){
+				if(epoch !== openEpoch)
+					Epoch({ epoch })
 			}
 		})
 	}
@@ -46,12 +61,12 @@ const EpochPlaceholder = Component(({ ctx }) => {
 	ctx.afterDelete(() => playground.params.off('update', redraw))
 
 	return () => {
-		if(playground.willCreateNewEpoch()){
+		if(!playground.getMatchingEpoch()){
 			VStack({ class: 'w-full mb-10' }, () => {
 				if(playground.currentPrompt.length > 0)
 					EpochHeader({
 						prompt: playground.currentPrompt,
-						model: playground.model,
+						model: playground.model.id,
 						open: true,
 						onToggle: () => null
 					})
@@ -62,7 +77,12 @@ const EpochPlaceholder = Component(({ ctx }) => {
 	}
 })
 
-const EpochHeader = ({ prompt, model, open, onToggle }) => {
+const EpochHeader = Fragment(({ ctx, prompt, model: modelId, open, onToggle }) => {
+	let playground = ctx.global.playground
+	let model = playground.models.find(
+		model => model.id === modelId
+	)
+
 	HStack({ class: 'w-full items-center justify-between mb-4' }, () => {
 		HStack({ class: 'items-center gap-x-2' }, () => {
 			Interactive({ onTap: onToggle }, () => {
@@ -77,20 +97,22 @@ const EpochHeader = ({ prompt, model, open, onToggle }) => {
 				text: prompt
 			})
 		})
-		HStack({ class: 'items-center gap-x-2' }, () => {
-			Image({
-				class: 'w-4 h-4 rounded-full shrink-0 object-cover',
-				url: model.thumbnails[0]
+		if(model){
+			HStack({ class: 'items-center gap-x-2' }, () => {
+				Image({
+					class: 'w-4 h-4 rounded-full shrink-0 object-cover',
+					url: model.thumbnails[0]
+				})
+				Text({
+					class: 'text-xs text-content2',
+					text: model.name
+				})
 			})
-			Text({
-				class: 'text-xs text-content2',
-				text: model.name
-			})
-		})
+		}
 	})
-}
+})
 
-const Epoch = Component(({ ctx, epoch }) => {
+const Epoch = Component(({ ctx, epoch, open }) => {
 	let redraw = ctx.redraw.bind(ctx)
 
 	epoch.on('update', redraw)
@@ -113,7 +135,7 @@ const Epoch = Component(({ ctx, epoch }) => {
 	
 			if(!epoch.minimized){
 				HStack({ class: 'gap-4 flex-wrap' }, () => {
-					for(let result of epoch.results){
+					for(let result of epoch.images){
 						if(result.computeHandle){
 							Status({ computeHandle: result.computeHandle })
 						}else{
@@ -121,7 +143,7 @@ const Epoch = Component(({ ctx, epoch }) => {
 						}
 					}
 	
-					if(!epoch.sealed)
+					if(open)
 						GenerateTrigger()
 				})
 			}
@@ -169,8 +191,8 @@ const Result = ({ result }) => {
 
 	VStack({ class: 'tile result' }, () => {
 		Image({
-			class: '',
-			blob: result.image
+			blob: result.image,
+			url: result.url
 		})
 	})
 }

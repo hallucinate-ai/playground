@@ -47,6 +47,10 @@ export default ({ endpoint }) => {
 		callbacks.models.resolve(models)
 	})
 
+	socket.on('history', ({ epochs }) => {
+		callbacks.history.resolve(epochs)
+	})
+
 	socket.on('progress', ({ id, value, stage }) => {
 		console.log(`task(${id}) progress: ${stage} ${value}`)
 
@@ -118,6 +122,17 @@ export default ({ endpoint }) => {
 		
 			return new Promise((resolve, reject) => {
 				callbacks.models = { resolve, reject }
+			})
+		},
+
+		async getHistory({ apiToken }){
+			socket.send({
+				command: 'history',
+				api_token: apiToken
+			})
+		
+			return new Promise((resolve, reject) => {
+				callbacks.history = { resolve, reject }
 			})
 		},
 

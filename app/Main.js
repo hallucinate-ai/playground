@@ -13,6 +13,11 @@ export default ({ apiUrl }) => {
 		params: createParams(),
 		api: createApi({ endpoint: apiUrl }),
 
+		setApiToken(token){
+			app.apiToken = token
+			app.loadHistory()
+		},
+
 		setModel(model){
 			app.model = model
 			app.emit('update')
@@ -22,25 +27,32 @@ export default ({ apiUrl }) => {
 			return app.params.get('prompt')
 		},
 
-		willCreateNewEpoch(){
-			let epoch = app.epochs[app.epochs.length - 1]
-			return !epoch || !isSamePrompt(epoch.prompt, app.currentPrompt) || epoch.model.id !== app.model.id
+		getMatchingEpoch(){
+			return app.epochs.find(
+				epoch => isSamePrompt(epoch.prompt, app.currentPrompt) 
+					&& epoch.model === app.model.id
+			)
 		},
 
 		createEpoch(){
 			let epoch = {
 				...createEmitter(),
 				prompt: app.currentPrompt,
+				model: app.model.id,
 				seed: 1 + Math.floor(1000000 * Math.random()),
-				date: Math.floor(Date.now() / 1000),
-				results: [],
-				model: app.model
+				images: [],
 			}
 
 			app.epochs.push(epoch)
 			app.emit('update')
 
 			return epoch
+		},
+
+		sortEpochs(){
+			app.epochs.sort((a, b) => {
+				return a.images[a.images.length-1].timeCreated - b.images[b.images.length-1].timeCreated
+			})
 		},
 
 		async getParams(){
@@ -62,43 +74,21 @@ export default ({ apiUrl }) => {
 		},
 
 		removeResult({ epoch, result }){
-			epoch.results.splice(epoch.results.indexOf(result), 1)
+			epoch.images.splice(epoch.images.indexOf(result), 1)
 			epoch.emit('update')
 
-			if(epoch.results.length === 0){
+			if(epoch.images.length === 0){
 				app.epochs.splice(app.epochs.indexOf(epoch), 1)
 				app.emit('update')
 			}
-		},
-
-		async refreshModelsList(){
-			try{
-				app.models = await this.api.getModels()
-			}catch{
-				await new Promise(resolve => setTimeout(resolve, 1000))
-				return await app.refreshModelsList()
-			}
-			
-
-			if(!app.model){
-				app.model = app.models.find(
-					model => model.id === 'stable-diffusion-v1-5'
-				)
-			}
-
-			app.emit('update')
 		},
 		
 		async generate(){
 			try{
 				let params = await app.getParams()
-
-				let epoch = app.willCreateNewEpoch()
-					? app.createEpoch()
-					: app.epochs[app.epochs.length - 1]
-			
-				
+				let epoch = app.getMatchingEpoch() || app.createEpoch()
 				let seed = epoch.seed++
+
 				let computeHandle = app.api.generate({
 					...params,
 					seed,
@@ -106,8 +96,11 @@ export default ({ apiUrl }) => {
 				})
 
 				let result = {
-					params,
-					seed,
+					params: {
+						...params,
+						seed
+					},
+					timeCreated: new Date(),
 					computeHandle
 				}
 			
@@ -130,7 +123,8 @@ export default ({ apiUrl }) => {
 					app.emit('compute-update')
 				})
 
-				epoch.results.push(result)
+				epoch.images.push(result)
+				app.sortEpochs()
 				epoch.emit('update')
 			}catch(e){
 				app.emit('error', {
@@ -140,9 +134,56 @@ export default ({ apiUrl }) => {
 			}
 		},
 
+		async refreshModelsList(){
+			try{
+				app.models = await this.api.getModels()
+			}catch{
+				await new Promise(resolve => setTimeout(resolve, 1000))
+				return await app.refreshModelsList()
+			}
+			
+
+			if(!app.model){
+				app.model = app.models.find(
+					model => model.id === 'stable-diffusion-v1-5'
+				)
+			}
+
+			app.emit('update')
+		},
+
+		async loadHistory(){
+			try{
+				var historyEpochs = await this.api.getHistory({
+					apiToken: app.apiToken
+				})
+			}catch{
+				await new Promise(resolve => setTimeout(resolve, 1000))
+				return await app.loadHistory()
+			}
+
+			for(let { prompt, model, images } of historyEpochs){
+				app.epochs.push({
+					...createEmitter(),
+					prompt,
+					model,
+					seed: images[images.length-1].params.seed + 1,
+					images: images.map(
+						({ params, timeCreated, url }) => ({
+							...params,
+							timeCreated,
+							url
+						})
+					),
+				})
+			}
+
+			app.emit('update')
+		},
+
 		get busy(){
 			return app.epochs.some(
-				epoch => epoch.results.some(
+				epoch => epoch.images.some(
 					result => result.computeHandle
 				)
 			)
@@ -150,23 +191,13 @@ export default ({ apiUrl }) => {
 
 		get unseenCount(){
 			return app.epochs.reduce(
-				(count, epoch) => count + epoch.results.filter(
+				(count, epoch) => count + epoch.images.filter(
 					result => !result.computeHandle && !result.seen
 				).length,
 				0
 			)
 		}
 	}
-
-	app.params.on('update', () => {
-		if(app.epochs.length === 0)
-			return
-
-		let last = app.epochs[app.epochs.length - 1]
-		
-		last.sealed = app.willCreateNewEpoch()
-		last.emit('update')
-	})
 
 	app.refreshModelsList()
 
